@@ -8,4 +8,4 @@ class FundTransfers(models.Model):
     iban = models.ForeignKey(Account, on_delete=models.CASCADE)
     iban_receiver = IBANField()
     amount = models.FloatField(validators=[MinValueValidator(0)])
-    currency = models.ForeignKey(Currency, default=1)
+    currency = models.ForeignKey(Currency, on_delete=models.CASCADE, default=1)
