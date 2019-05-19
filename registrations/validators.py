@@ -5,8 +5,11 @@ from django.utils.translation import gettext_lazy as _
 
 @deconstructible
 class PhoneNumberE164Validator(validators.RegexValidator):
-    regex = r'^\+\d{7,17}$'
+    '''
+    Validates E.164 international phone number format
+    required for sending SMS
+    '''
+    regex = r'^\+?[1-9]\d{6,14}$'
     message = _(
-        'Enter a valid phone number. This value may start with + followed by 7 to 17 numbers.'
+        'Enter a valid phone number. This value may start with + followed by 7 to 15 numbers.'
     )
-    flags = 0

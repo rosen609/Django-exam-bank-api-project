@@ -38,9 +38,17 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    'rest_framework',
+    'rest_framework.authtoken',
+    'rest_auth',
+
+    'django_twilio',
+    'django_iban',
+
     'registrations',
     'notifications',
-    'django_twilio',
+    'fund_transfers',
+
 ]
 
 MIDDLEWARE = [
