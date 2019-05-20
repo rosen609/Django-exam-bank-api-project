@@ -1,5 +1,4 @@
 from rest_framework import serializers
-from django.contrib.auth.models import User
 
 from .models import *
 
@@ -27,4 +26,16 @@ class UserSerializer(serializers.ModelSerializer):
 class AccountProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = AccountProduct
-        fields = ('__all__',)
+        fields = ('__all__')
+
+
+class CurrencySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Currency
+        fields = ('__all__')
+
+
+class CustomerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Customer
+        fields = ('__all__')
