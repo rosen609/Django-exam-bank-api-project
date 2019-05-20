@@ -1,24 +1,31 @@
-from django.shortcuts import render
-
-
-from django.http import HttpResponse
-from rest_framework.views import APIView
+from rest_framework import views, generics
 from rest_framework.response import Response
+from rest_framework import status
 
-from .serializers import UserSerializer
-# Create your views here.
+from .models import *
+from .serializers import *
 
 
-class UserCreate(APIView):
+class UserCreate(views.APIView):
+    '''
+    User creation view
+    '''
 
     def post(self, request):
-        serialzer = UserSerializer(data=request.data)
+        serializer = UserSerializer(data=request.data)
 
-        if serialzer.is_valid():
-            serialzer.save()
-            return Response(serialzer.data)
-        return Response(serialzer.errors)
+        if serializer.is_valid():
+            serializer.save()
+            serialized_data = serializer.data
+            serialized_data['password'] = ''
+            return Response(serialized_data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-def reset(self, request):
-    return HttpResponse('')
+class AccountProductList(generics.ListAPIView):
+    queryset = AccountProduct.objects.all()
+    serializer_class = AccountProductSerializer
+
+
+class AccountList(generics.ListCreateAPIView):
+    pass

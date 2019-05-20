@@ -19,5 +19,7 @@ from django.urls import path, re_path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/v1/registrations/', include('registrations.urls')),
+    path('api/v1/fund_transfers/', include('fund_transfers.urls')),
+    path('api/v1/notifications/', include('notifications.urls')),
     re_path('^', include('django.contrib.auth.urls')),
 ]

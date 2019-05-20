@@ -71,7 +71,9 @@ class Accountant(models.Model):
 
 class Manager(models.Model):
     '''
-    Company user. Can confirm or reject Fund transfers, has full rights on Accounts
+    Company user. Can confirm or reject Fund transfers, has full rights
+    on Accounts:
+    CRU, delete (if no transfers related to it)
     '''
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     personal_identity_number = models.CharField(max_length=15)
