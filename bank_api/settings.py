@@ -44,6 +44,7 @@ INSTALLED_APPS = [
 
     'django_twilio',
     'django_iban',
+    'drf_multiple_model',
 
     'registrations',
     'notifications',
