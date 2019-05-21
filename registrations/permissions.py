@@ -11,12 +11,12 @@ class IsSuperUser(BasePermission):
         return request.user.is_superuser
 
 
-class IsSuperUserOrReadOnly(BasePermission):
+class IsReadOnly(BasePermission):
     '''
     Allows readonly access for Account Products and Currencies
     '''
 
     def has_permission(self, request, view):
-        if request.method in SAFE_METHODS or request.user.is_superuser:
+        if request.method in SAFE_METHODS:
             return True
         return False
