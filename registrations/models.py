@@ -1,13 +1,10 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django_iban.fields import IBANField
 
-from .validators import PhoneNumberE164Validator
+from .validators import *
 from .enums import CustomerTypeEnum, AccountProductTypeEnum
-
-
-phone_number_validator = PhoneNumberE164Validator()
 
 
 class Customer(models.Model):
@@ -49,8 +46,8 @@ class Person(models.Model):
     personal_identity_number = models.CharField(max_length=15)
     date_of_birth = models.DateField()
     address = models.CharField(max_length=200)
-    mobile_phone = models.CharField(max_length=17, validators=[phone_number_validator])
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, null=True)
+    mobile_phone = models.CharField(max_length=17, validators=[PhoneNumberE164Validator()])
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, blank=True, null=True)
 
     def __str__(self):
         return f"{self.user} - {self.user.first_name} {self.user.last_name}"
@@ -62,8 +59,8 @@ class Accountant(models.Model):
     '''
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     personal_identity_number = models.CharField(max_length=15)
-    mobile_phone = models.CharField(max_length=17, validators=[phone_number_validator])
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, null=True)
+    mobile_phone = models.CharField(max_length=17, validators=[PhoneNumberE164Validator()])
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, blank=True, null=True)
 
     def __str__(self):
         return f"{self.user} - {self.user.first_name} {self.user.last_name}"
@@ -77,9 +74,9 @@ class Manager(models.Model):
     '''
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     personal_identity_number = models.CharField(max_length=15)
-    mobile_phone = models.CharField(max_length=17, validators=[phone_number_validator])
+    mobile_phone = models.CharField(max_length=17, validators=[PhoneNumberE164Validator()])
     limit_per_transfer = models.PositiveIntegerField(blank=True, null=True)
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, null=True)
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, blank=True, null=True)
 
     def __str__(self):
         return f"{self.user} - {self.user.first_name} {self.user.last_name}"
@@ -89,10 +86,12 @@ class AccountProduct(models.Model):
     '''
     Defines different Bank account products with some specific details
     '''
+    code = models.CharField(max_length=10, unique=True)
     name = models.CharField(max_length=150)
     type = models.CharField(max_length=7, choices=[(t.name, t.value) for t in AccountProductTypeEnum])
     description = models.TextField()
-    maturity_in_months = models.PositiveIntegerField(blank=True, null=True, validators=[MinValueValidator(1)])
+    maturity_in_months = models.PositiveIntegerField(blank=True, null=True,
+                                                     validators=[MinValueValidator(1), MaxValueValidator(60)])
     interest_rate = models.FloatField(validators=[MinValueValidator(0)])
 
     def __str__(self):
