@@ -2,9 +2,23 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django_iban.fields import IBANField
+from django.core import validators
+from django.utils.deconstruct import deconstructible
+from django.utils.translation import gettext_lazy as _
 
-from .validators import *
-from .enums import CustomerTypeEnum, AccountProductTypeEnum
+from .enums import *
+
+
+@deconstructible
+class PhoneNumberE164Validator(validators.RegexValidator):
+    '''
+    Validates E.164 international phone number format
+    required for sending SMS
+    '''
+    regex = r'^\+?[1-9]\d{6,14}$'
+    message = _(
+        'Enter a valid phone number. This value may start with + followed by 7 to 15 numbers.'
+    )
 
 
 class Customer(models.Model):
@@ -30,10 +44,10 @@ class Currency(models.Model):
     rate_to_BGN = models.FloatField(validators=[MinValueValidator(0)])
 
     def __str__(self):
-        return f"{self.code} {self.name} {self.rate_to_BGN}"
+        return f"{self.code} {self.name}"
 
     class Meta:
-        ordering = ['code']
+        #ordering = ['code']
         verbose_name_plural = 'Currencies'
 
 
@@ -95,20 +109,23 @@ class AccountProduct(models.Model):
     interest_rate = models.FloatField(validators=[MinValueValidator(0)])
 
     def __str__(self):
-        return f"{self.name} : {self.description[:20]}..."
+        return f"{self.name} : {self.description}"
 
 
 class Account(models.Model):
     '''
     Bank account. All Fund transfers are initiated from an account
     '''
+    DJANGO_BANK_BIC = 'DJNG8280'
+
     product = models.ForeignKey(AccountProduct, on_delete=models.CASCADE)
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE, null=True)
     users = models.ManyToManyField(User)
     iban = IBANField(enforce_database_constraint=True, unique=True)
-    balance = models.FloatField(validators=[MinValueValidator(0)])
+    balance = models.FloatField(validators=[MinValueValidator(0)], default=0)
     currency = models.ForeignKey(Currency, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=7, choices=[(s.name, s.value) for s in AccountStatusEnum], default='A')
 
     def __str__(self):
         return f"{self.iban} {self.currency.code}"
