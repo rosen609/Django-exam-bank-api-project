@@ -1,9 +1,13 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from rest_framework import serializers
-from rest_framework.validators import ValidationError
+from django_iban.generator import IBANGenerator
+from django.db import transaction
+
+from sequences import get_next_value
 
 from .models import *
+from .validators import *
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -61,21 +65,6 @@ class CustomerDetailSerializer(serializers.ModelSerializer):
         model = Customer
         fields = '__all__'
         read_only_fields = ('id', 'name', 'type')
-
-
-class CustomerTypeValidator(object):
-    '''
-    Enforces same type for extended user and customer relation
-    '''
-    def __init__(self, required_type):
-        self._required_type = required_type
-
-    def __call__(self, value):
-        customer = Customer.objects.get(cbs_customer_number=value['customer']['cbs_customer_number'])
-        if not customer:
-            raise ValidationError("Incorrect CBS customer number.")
-        if customer.type != self._required_type:
-            raise ValidationError("Incorrect customer type.")
 
 
 class PersonSerializer(serializers.ModelSerializer):
@@ -237,3 +226,39 @@ class ManagerDetailSerializer(serializers.ModelSerializer):
         return instance
 
 
+class AccountSerializer(serializers.ModelSerializer):
+    users = UserDetailSerializer(many=True, read_only=True)
+    customer = CustomerDetailSerializer(read_only=True)
+
+    class Meta:
+        model = Account
+        fields = '__all__'
+        read_only_fields = ('id', 'customer', 'users', 'iban', 'balance', 'created_at', 'status')
+
+    def create(self, validated_data):
+        user = self.context['request'].user
+        try:
+            extended_user = Person.objects.get(user__pk=user.id)
+        except Person.DoesNotExist:
+            try:
+                extended_user = Manager.objects.get(user__pk=user.id)
+            except Manager.DoesNotExist:
+                raise ValidationError('Wrong user type!')
+
+        validated_data['customer'] = extended_user.customer
+
+        generator = IBANGenerator()
+
+        with transaction.atomic():
+            iban_sequence = get_next_value('iban_sequence')
+            iban = generator.generate(country_code='BG',
+                                      bank=Account.DJANGO_BANK_BIC,
+                                      account=f"{validated_data['currency'].code}{iban_sequence:08d}")
+
+        validated_data['iban'] = iban['generated_iban']
+
+        instance = Account.objects.create(**validated_data)
+
+        instance.users.add(user)
+
+        return instance

@@ -12,7 +12,7 @@ class AccountProductTypeEnum(Enum):
     S = "Saving account"
 
 
-class AccountStatus(Enum):
+class AccountStatusEnum(Enum):
     A = "Active"
     C = "Closed"
 

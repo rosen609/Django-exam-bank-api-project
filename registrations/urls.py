@@ -1,9 +1,9 @@
-from django.urls import path, re_path, include
+from django.urls import path, include
 from . import views
 
 urlpatterns = [
     path('auth/', include('rest_auth.urls')),
-    path('info/', views.GeneralInfoAPIView.as_view(), name='info'),
+    path('info/', views.GeneralInfoView.as_view(), name='info'),
     path('all_users/', views.AllExtendedUsersView.as_view(), name='all_users'),
     path('account-products/', views.AccountProductList.as_view(), name='account_products'),
     path('account-products/<int:pk>/', views.AccountProductDetail.as_view(), name='account_products_detail'),
@@ -18,6 +18,6 @@ urlpatterns = [
     path('managers/', views.ManagerList.as_view(), name='managers'),
     path('managers/<int:pk>/', views.ManagerDetail.as_view(), name='managers_detail'),
     path('accounts/', views.AccountList.as_view(), name='accounts'),
-    path('accounts/', views.AccountList.as_view(), name='accounts'),
-    path('accounts/', views.AccountList.as_view(), name='accounts'),
+    path('accounts/<int:pk>/', views.AccountList.as_view(), name='accounts_detail'),
+    path('accounts/<int:pk>/user/<int:user_pk>/', views.AccountList.as_view(), name='accounts_user'),
 ]

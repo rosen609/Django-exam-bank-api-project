@@ -1,6 +1,6 @@
-from rest_framework import views, generics
+from rest_framework import generics
 from rest_framework import exceptions
-from rest_framework.permissions import IsAdminUser
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
 
 from drf_multiple_model.views import ObjectMultipleModelAPIView
 
@@ -32,7 +32,7 @@ class MethodSerializerView(object):
         raise exceptions.MethodNotAllowed(self.request.method)
 
 
-class GeneralInfoAPIView(ObjectMultipleModelAPIView):
+class GeneralInfoView(ObjectMultipleModelAPIView):
     '''
     General info multiple view for unauthenticated access
     Shows both Account Products and Currencies info
@@ -77,7 +77,7 @@ class CurrencyList(generics.ListCreateAPIView):
     queryset = Currency.objects.all()
     serializer_class = CurrencySerializer
 
-    permission_classes = [IsSuperUser|IsReadOnly]
+    permission_classes = [IsSuperUser | IsReadOnly]
 
 
 class CurrencyDetail(generics.RetrieveUpdateDestroyAPIView):
@@ -102,8 +102,6 @@ class CustomerDetail(generics.RetrieveUpdateDestroyAPIView):
 
 
 class PersonList(MethodSerializerView, generics.ListCreateAPIView):
-    serializer_class = PersonSerializer
-
     method_serializer_classes = {
         ('GET',): PersonDetailSerializer,
         ('POST',): PersonSerializer,
@@ -123,8 +121,6 @@ class PersonDetail(generics.RetrieveUpdateDestroyAPIView):
 
 
 class AccountantList(MethodSerializerView, generics.ListCreateAPIView):
-    serializer_class = AccountantSerializer
-
     method_serializer_classes = {
         ('GET',): AccountantDetailSerializer,
         ('POST',): AccountantSerializer,
@@ -144,8 +140,6 @@ class AccountantDetail(generics.RetrieveUpdateDestroyAPIView):
 
 
 class ManagerList(MethodSerializerView, generics.ListCreateAPIView):
-    serializer_class = ManagerSerializer
-
     method_serializer_classes = {
         ('GET',): ManagerDetailSerializer,
         ('POST',): ManagerSerializer,
@@ -165,4 +159,30 @@ class ManagerDetail(generics.RetrieveUpdateDestroyAPIView):
 
 
 class AccountList(generics.ListCreateAPIView):
-    pass
+    serializer_class = AccountSerializer
+
+    def get_queryset(self):
+        query_set = Account.objects.all()
+        user = self.request.user
+
+        if not user.is_staff:
+            query_set = query_set.filter(users__pk=user.pk)
+
+        return query_set
+
+    permission_classes = [IsAuthenticated, IsAdminUser | IsPerson | IsManager | IsAccountant & IsReadOnly]
+
+
+class AccountDetail(generics.DestroyAPIView):
+    serializer_class = AccountSerializer
+
+    def get_queryset(self):
+        query_set = Account.objects.all()
+        user = self.request.user
+
+        if not user.is_staff:
+            query_set = query_set.filter(users__pk=user.pk)
+
+        return query_set
+
+    permission_classes = [IsAuthenticated, AccountDeletePermission, IsAdminUser | IsPerson | IsManager]
