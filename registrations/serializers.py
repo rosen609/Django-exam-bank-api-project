@@ -67,18 +67,18 @@ class CustomerDetailSerializer(serializers.ModelSerializer):
         read_only_fields = ('id', 'name', 'type')
 
 
-class PersonSerializer(serializers.ModelSerializer):
-    '''
-    Personal extended user serializer for creation
-    '''
-    user = UserSerializer()
-
-    class Meta:
-        model = Person
-        fields = ('id', 'user', 'personal_identity_number', 'date_of_birth', 'address', 'mobile_phone')
-        read_only_fields = ('id',)
-
-    def create(self, validated_data):
+class ExtendedTools:
+    """
+    Helper class for different types of extended users and more
+    """
+    @staticmethod
+    def create_extended(model_instance, validated_data):
+        """
+        Same creation logic for all types of extended users (Person / Accountant / Manager)
+        :param model_instance: Current model instance from serializer's create
+        :param validated_data: validated_data from serializer's create
+        :return: extended user (Person / Accountant / Manager) with populated data
+        """
         user_data = validated_data.pop('user')
         user = get_user_model().objects.create_user(
             username=user_data['username'],
@@ -87,15 +87,102 @@ class PersonSerializer(serializers.ModelSerializer):
             first_name=user_data['first_name'],
             last_name=user_data['last_name']
         )
-        person = Person.objects.create(user=user, **validated_data)
-        person.user.password = ''
-        return person
+        extended_user = model_instance.objects.create(user=user, **validated_data)
+        extended_user.user.password = ''
+        return extended_user
+
+    @staticmethod
+    def update_extended(instance, validated_data):
+        """
+        Same update logic for all types of extended users (Person / Accountant / Manager)
+        :param instance: Current instance from serializer's update
+        :param validated_data: validated_data from serializer's update
+        :return: extended user (Person / Accountant / Manager) with updated data
+        """
+        customer_data = validated_data.pop('customer')
+        customer = Customer.objects.get(cbs_customer_number=customer_data['cbs_customer_number'])
+        instance.customer = customer
+        user_data = validated_data.pop('user')
+        user = get_user_model().objects.get_or_create(username=user_data['username'])[0]
+        user.email = user_data['email']
+        user.first_name = user_data['first_name']
+        user.last_name = user_data['last_name']
+        user.save()
+        instance.user = user
+        for key, value in validated_data.items():
+            setattr(instance, key, value)
+        instance.save()
+        return instance
+
+    @staticmethod
+    def get_extended_user(user):
+        """
+        Gets extended user or raises ValidationError
+        :param user:
+        :return: extended user found
+        """
+        try:
+            extended_user = Person.objects.get(user__pk=user.id)
+        except Person.DoesNotExist:
+            try:
+                extended_user = Manager.objects.get(user__pk=user.id)
+            except Manager.DoesNotExist:
+                try:
+                    extended_user = Accountant.objects.get(user__pk=user.id)
+                except Accountant.DoesNotExist:
+                    raise ValidationError('Wrong user type!')
+        return extended_user
+
+    @staticmethod
+    def get_person_manager_extended_user(user):
+        """
+        Gets extended user(if he/she is Person or Manager) or raises ValidationError
+        :param user:
+        :return: extended user found
+        """
+        try:
+            extended_user = Person.objects.get(user__pk=user.id)
+        except Person.DoesNotExist:
+            try:
+                extended_user = Manager.objects.get(user__pk=user.id)
+            except Manager.DoesNotExist:
+                raise ValidationError('Wrong user type!')
+        return extended_user
+
+    @staticmethod
+    def get_object_or_404(model_object, pk):
+        """
+        Helper function to retrieve instance of any class by pk provided
+        :param model_object:
+        :param pk:
+        :return: instance
+        """
+        try:
+            return model_object.objects.get(pk=pk)
+        except model_object.DoesNotExist:
+            raise ValidationError(f'{model_object.__name__} does not exists!')
 
 
-class PersonDetailSerializer(serializers.ModelSerializer):
-    '''
+class PersonSerializer(ExtendedTools, serializers.ModelSerializer):
+    """
+    Personal extended user serializer for creation
+    """
+    user = UserSerializer()
+
+    class Meta:
+        model = Person
+        fields = ('id', 'user', 'personal_identity_number', 'date_of_birth', 'address', 'mobile_phone')
+        read_only_fields = ('id',)
+
+    def create(self, validated_data):
+        extended_user = self.create_extended(model_instance=Person, validated_data=validated_data)
+        return extended_user
+
+
+class PersonDetailSerializer(ExtendedTools, serializers.ModelSerializer):
+    """
     Personal extended user serializer for RUD
-    '''
+    """
     user = UserDetailSerializer()
     customer = CustomerDetailSerializer()
 
@@ -106,24 +193,14 @@ class PersonDetailSerializer(serializers.ModelSerializer):
         validators = [CustomerTypeValidator('P')]
 
     def update(self, instance, validated_data):
-        customer_data = validated_data['customer']
-        customer = Customer.objects.get(cbs_customer_number=customer_data['cbs_customer_number'])
-        instance.customer = customer
-        user_data = validated_data['user']
-        user = get_user_model().objects.get_or_create(username=user_data['username'])[0]
-        user.email = user_data['email']
-        user.first_name = user_data['first_name']
-        user.last_name = user_data['last_name']
-        user.save()
-        instance.user = user
-        instance.save()
+        instance = self.update_extended(instance=instance, validated_data=validated_data)
         return instance
 
 
-class AccountantSerializer(serializers.ModelSerializer):
-    '''
+class AccountantSerializer(ExtendedTools, serializers.ModelSerializer):
+    """
     Accountant extended user serializer for creation
-    '''
+    """
     user = UserSerializer()
 
     class Meta:
@@ -132,23 +209,14 @@ class AccountantSerializer(serializers.ModelSerializer):
         read_only_fields = ('id',)
 
     def create(self, validated_data):
-        user_data = validated_data.pop('user')
-        user = get_user_model().objects.create_user(
-            username=user_data['username'],
-            password=user_data['password'],
-            email=user_data['email'],
-            first_name=user_data['first_name'],
-            last_name=user_data['last_name']
-        )
-        accountant = Accountant.objects.create(user=user, **validated_data)
-        accountant.user.password = ''
-        return accountant
+        extended_user = self.create_extended(model_instance=Accountant, validated_data=validated_data)
+        return extended_user
 
 
-class AccountantDetailSerializer(serializers.ModelSerializer):
-    '''
+class AccountantDetailSerializer(ExtendedTools, serializers.ModelSerializer):
+    """
     Accountant extended user serializer for RUD
-    '''
+    """
     user = UserDetailSerializer()
     customer = CustomerDetailSerializer()
 
@@ -159,24 +227,14 @@ class AccountantDetailSerializer(serializers.ModelSerializer):
         validators = [CustomerTypeValidator('C')]
 
     def update(self, instance, validated_data):
-        customer_data = validated_data['customer']
-        customer = Customer.objects.get(cbs_customer_number=customer_data['cbs_customer_number'])
-        instance.customer = customer
-        user_data = validated_data['user']
-        user = get_user_model().objects.get_or_create(username=user_data['username'])[0]
-        user.email = user_data['email']
-        user.first_name = user_data['first_name']
-        user.last_name = user_data['last_name']
-        user.save()
-        instance.user = user
-        instance.save()
+        instance = self.update_extended(instance=instance, validated_data=validated_data)
         return instance
 
 
-class ManagerSerializer(serializers.ModelSerializer):
-    '''
+class ManagerSerializer(ExtendedTools, serializers.ModelSerializer):
+    """
     Manager extended user serializer for creation
-    '''
+    """
     user = UserSerializer()
 
     class Meta:
@@ -185,23 +243,14 @@ class ManagerSerializer(serializers.ModelSerializer):
         read_only_fields = ('id',)
 
     def create(self, validated_data):
-        user_data = validated_data.pop('user')
-        user = get_user_model().objects.create_user(
-            username=user_data['username'],
-            password=user_data['password'],
-            email=user_data['email'],
-            first_name=user_data['first_name'],
-            last_name=user_data['last_name']
-        )
-        manager = Manager.objects.create(user=user, **validated_data)
-        manager.user.password = ''
-        return manager
+        extended_user = self.create_extended(model_instance=Manager, validated_data=validated_data)
+        return extended_user
 
 
-class ManagerDetailSerializer(serializers.ModelSerializer):
-    '''
+class ManagerDetailSerializer(ExtendedTools, serializers.ModelSerializer):
+    """
     Manager extended user serializer for RUD
-    '''
+    """
     user = UserDetailSerializer()
     customer = CustomerDetailSerializer()
 
@@ -212,21 +261,14 @@ class ManagerDetailSerializer(serializers.ModelSerializer):
         validators = [CustomerTypeValidator('C')]
 
     def update(self, instance, validated_data):
-        customer_data = validated_data['customer']
-        customer = Customer.objects.get(cbs_customer_number=customer_data['cbs_customer_number'])
-        instance.customer = customer
-        user_data = validated_data['user']
-        user = get_user_model().objects.get_or_create(username=user_data['username'])[0]
-        user.email = user_data['email']
-        user.first_name = user_data['first_name']
-        user.last_name = user_data['last_name']
-        user.save()
-        instance.user = user
-        instance.save()
+        instance = self.update_extended(instance=instance, validated_data=validated_data)
         return instance
 
 
-class AccountSerializer(serializers.ModelSerializer):
+class AccountSerializer(ExtendedTools, serializers.ModelSerializer):
+    """
+    Serializer for Account creation with some validations.
+    """
     users = UserDetailSerializer(many=True, read_only=True)
     customer = CustomerDetailSerializer(read_only=True)
 
@@ -237,13 +279,7 @@ class AccountSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user = self.context['request'].user
-        try:
-            extended_user = Person.objects.get(user__pk=user.id)
-        except Person.DoesNotExist:
-            try:
-                extended_user = Manager.objects.get(user__pk=user.id)
-            except Manager.DoesNotExist:
-                raise ValidationError('Wrong user type!')
+        extended_user = self.get_person_manager_extended_user(user=user)
 
         validated_data['customer'] = extended_user.customer
 
@@ -262,3 +298,27 @@ class AccountSerializer(serializers.ModelSerializer):
         instance.users.add(user)
 
         return instance
+
+
+class AccountStatusSerializer(serializers.ModelSerializer):
+    users = UserDetailSerializer(many=True, read_only=True)
+    customer = CustomerDetailSerializer(read_only=True)
+    product = AccountProductSerializer(read_only=True)
+    currency = CurrencySerializer(read_only=True)
+
+    class Meta:
+        model = Account
+        fields = '__all__'
+        read_only_fields = ('id', 'customer', 'users', 'iban', 'balance', 'created_at', 'product', 'currency')
+
+
+class AccountReadOnlySerializer(serializers.ModelSerializer):
+    users = UserDetailSerializer(many=True, read_only=True)
+    customer = CustomerDetailSerializer(read_only=True)
+    product = AccountProductSerializer(read_only=True)
+    currency = CurrencySerializer(read_only=True)
+
+    class Meta:
+        model = Account
+        fields = '__all__'
+        read_only_fields = ('__all__',)

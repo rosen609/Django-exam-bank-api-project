@@ -11,10 +11,10 @@ from .enums import *
 
 @deconstructible
 class PhoneNumberE164Validator(validators.RegexValidator):
-    '''
+    """
     Validates E.164 international phone number format
     required for sending SMS
-    '''
+    """
     regex = r'^\+?[1-9]\d{6,14}$'
     message = _(
         'Enter a valid phone number. This value may start with + followed by 7 to 15 numbers.'
@@ -22,11 +22,11 @@ class PhoneNumberE164Validator(validators.RegexValidator):
 
 
 class Customer(models.Model):
-    '''
+    """
     Customer is the owner of accounts.
     All details come from Core Banking System, based on Customer number.
     No active role in Bank API
-    '''
+    """
     cbs_customer_number = models.CharField(max_length=10)
     name = models.CharField(max_length=150)
     type = models.CharField(max_length=7, choices=[(t.name, t.value) for t in CustomerTypeEnum])
@@ -36,9 +36,9 @@ class Customer(models.Model):
 
 
 class Currency(models.Model):
-    '''
+    """
     All details come from Core Banking System
-    '''
+    """
     code = models.CharField(max_length=3, unique=True)
     name = models.CharField(max_length=50)
     rate_to_BGN = models.FloatField(validators=[MinValueValidator(0)])
@@ -52,10 +52,10 @@ class Currency(models.Model):
 
 
 class Person(models.Model):
-    '''
+    """
     Personal user.
-    Has all rights on his accounts and transfers.
-    '''
+    Has all rights on accounts and transfers.
+    """
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     personal_identity_number = models.CharField(max_length=15)
     date_of_birth = models.DateField()
@@ -68,9 +68,9 @@ class Person(models.Model):
 
 
 class Accountant(models.Model):
-    '''
+    """
     Limited company user. Has rights to create Fund transfers and see account details
-    '''
+    """
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     personal_identity_number = models.CharField(max_length=15)
     mobile_phone = models.CharField(max_length=17, validators=[PhoneNumberE164Validator()])
@@ -81,11 +81,11 @@ class Accountant(models.Model):
 
 
 class Manager(models.Model):
-    '''
+    """
     Company user. Can confirm or reject Fund transfers, has full rights
     on Accounts:
     CRU, delete (if no transfers related to it)
-    '''
+    """
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     personal_identity_number = models.CharField(max_length=15)
     mobile_phone = models.CharField(max_length=17, validators=[PhoneNumberE164Validator()])
@@ -97,9 +97,9 @@ class Manager(models.Model):
 
 
 class AccountProduct(models.Model):
-    '''
+    """
     Defines different Bank account products with some specific details
-    '''
+    """
     code = models.CharField(max_length=10, unique=True)
     name = models.CharField(max_length=150)
     type = models.CharField(max_length=7, choices=[(t.name, t.value) for t in AccountProductTypeEnum])
@@ -113,9 +113,9 @@ class AccountProduct(models.Model):
 
 
 class Account(models.Model):
-    '''
+    """
     Bank account. All Fund transfers are initiated from an account
-    '''
+    """
     DJANGO_BANK_BIC = 'DJNG8280'
 
     product = models.ForeignKey(AccountProduct, on_delete=models.CASCADE)

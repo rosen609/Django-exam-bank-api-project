@@ -18,6 +18,6 @@ urlpatterns = [
     path('managers/', views.ManagerList.as_view(), name='managers'),
     path('managers/<int:pk>/', views.ManagerDetail.as_view(), name='managers_detail'),
     path('accounts/', views.AccountList.as_view(), name='accounts'),
-    path('accounts/<int:pk>/', views.AccountList.as_view(), name='accounts_detail'),
-    path('accounts/<int:pk>/user/<int:user_pk>/', views.AccountList.as_view(), name='accounts_user'),
+    path('accounts/<int:pk>/', views.AccountDetail.as_view(), name='accounts_detail'),
+    path('accounts/<int:pk>/user/<int:user_pk>/', views.AccountUser.as_view(), name='accounts_user'),
 ]

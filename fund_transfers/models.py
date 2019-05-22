@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
 from django_iban.fields import IBANField
 from registrations.models import Account, Currency
-from .enums import TransferStatusEnum
+from .enums import TransferStatusEnum, PaymentSystemEnum
 
 
 class FundTransfers(models.Model):
@@ -18,8 +18,9 @@ class FundTransfers(models.Model):
     details = models.CharField(max_length=150)
     created = models.DateTimeField(auto_now_add=True)
     last_updated = models.DateTimeField(auto_now=True)
-    status = models.CharField(max_length=10, choices=[(s.name, s.value) for s in TransferStatusEnum])
+    status = models.CharField(max_length=10, choices=[(s.name, s.value) for s in TransferStatusEnum], default='I')
     otp_generated = models.CharField(max_length=10, blank=True)
     otp_received = models.CharField(max_length=10, blank=True)
-    user_approver = models.ForeignKey(User, related_name='user_approver', on_delete=models.CASCADE, blank=True, null=True)
+    user_approved = models.ForeignKey(User, related_name='ft_approval', on_delete=models.CASCADE, blank=True, null=True)
     reference_cbs = models.CharField(max_length=20, blank=True)
+    payment_system = models.CharField(max_length=7, choices=[(p.name, p.value) for p in PaymentSystemEnum], default='I')
