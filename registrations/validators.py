@@ -4,9 +4,9 @@ from .models import Customer
 
 
 class CustomerTypeValidator(object):
-    '''
-    Enforces same type for extended user and customer relation
-    '''
+    """
+    Enforces consistent type for extended user and customer relation
+    """
     def __init__(self, required_type):
         self._required_type = required_type
 
