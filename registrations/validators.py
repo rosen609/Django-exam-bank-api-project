@@ -1,18 +1,27 @@
-from rest_framework.validators import ValidationError
+from django.core import validators
+from django.utils.deconstruct import deconstructible
+from django.utils.translation import gettext_lazy as _
 
-from .models import Customer
 
-
-class CustomerTypeValidator(object):
+@deconstructible
+class PhoneNumberE164Validator(validators.RegexValidator):
     """
-    Enforces consistent type for extended user and customer relation
+    Validates E.164 international phone number format
+    required for sending SMS
     """
-    def __init__(self, required_type):
-        self._required_type = required_type
+    regex = r'^\+?[1-9]\d{6,14}$'
+    message = _(
+        'Enter a valid phone number. This value may start with + '
+        'followed by 7 to 15 digits and first digit should not be 0.'
+    )
 
-    def __call__(self, value):
-        customer = Customer.objects.get(cbs_customer_number=value['customer']['cbs_customer_number'])
-        if not customer:
-            raise ValidationError("Incorrect CBS customer number.")
-        if customer.type != self._required_type:
-            raise ValidationError("Incorrect customer type.")
+
+class PinValidator(validators.RegexValidator):
+    """
+    Validates 4 digit PIN number
+    required for Fund Transfers approval
+    """
+    regex = r'^\d{4}$'
+    message = _(
+        'Enter a valid 4-digit PIN.'
+    )

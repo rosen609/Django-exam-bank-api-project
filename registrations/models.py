@@ -2,23 +2,9 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django_iban.fields import IBANField
-from django.core import validators
-from django.utils.deconstruct import deconstructible
-from django.utils.translation import gettext_lazy as _
 
 from .enums import *
-
-
-@deconstructible
-class PhoneNumberE164Validator(validators.RegexValidator):
-    """
-    Validates E.164 international phone number format
-    required for sending SMS
-    """
-    regex = r'^\+?[1-9]\d{6,14}$'
-    message = _(
-        'Enter a valid phone number. This value may start with + followed by 7 to 15 numbers.'
-    )
+from .validators import *
 
 
 class Customer(models.Model):
@@ -61,6 +47,7 @@ class Person(models.Model):
     date_of_birth = models.DateField()
     address = models.CharField(max_length=200)
     mobile_phone = models.CharField(max_length=17, validators=[PhoneNumberE164Validator()])
+    pin = models.CharField(max_length=4, blank=True, validators=[PinValidator()])
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE, blank=True, null=True)
 
     def __str__(self):
@@ -90,6 +77,7 @@ class Manager(models.Model):
     personal_identity_number = models.CharField(max_length=15)
     mobile_phone = models.CharField(max_length=17, validators=[PhoneNumberE164Validator()])
     limit_per_transfer = models.PositiveIntegerField(blank=True, null=True)
+    pin = models.CharField(max_length=4, blank=True, validators=[PinValidator()])
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE, blank=True, null=True)
 
     def __str__(self):

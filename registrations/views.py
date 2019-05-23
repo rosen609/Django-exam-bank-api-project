@@ -50,8 +50,9 @@ class GeneralInfoView(ObjectMultipleModelAPIView):
 
 class AllExtendedUsersView(ObjectMultipleModelAPIView):
     """
-    Admins-only All extended users list
+    All extended users list
     Lists Persons, Accountants and Managers info
+    Admins-only
     """
 
     querylist = [
@@ -226,8 +227,8 @@ class AccountUser(ExtendedTools, APIView):
     def get(self, request, pk, user_pk):
         return_status = status.HTTP_201_CREATED
 
-        account = self.get_object_or_404(model_object=Account, pk=pk)
-        user_to_add = self.get_object_or_404(model_object=User, pk=user_pk)
+        account = self.get_object_or_err(model_object=Account, pk=pk)
+        user_to_add = self.get_object_or_err(model_object=User, pk=user_pk)
 
         if not Account.objects.filter(pk=pk).filter(users__pk=user_pk).exists():
             extended_user = self.get_extended_user(user=user_to_add)
@@ -241,8 +242,8 @@ class AccountUser(ExtendedTools, APIView):
         return Response(data=serializer.data, status=return_status)
 
     def delete(self, request, pk, user_pk):
-        account = self.get_object_or_404(model_object=Account, pk=pk)
-        user_to_remove = self.get_object_or_404(model_object=User, pk=user_pk)
+        account = self.get_object_or_err(model_object=Account, pk=pk)
+        user_to_remove = self.get_object_or_err(model_object=User, pk=user_pk)
         if Account.objects.filter(pk=pk).filter(users__pk=user_pk).exists():
             account.users.remove(user_to_remove)
         serializer = AccountReadOnlySerializer(account)
