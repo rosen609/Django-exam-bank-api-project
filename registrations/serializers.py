@@ -1,13 +1,13 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.validators import UnicodeUsernameValidator
-from rest_framework import serializers
-from django_iban.generator import IBANGenerator
 from django.db import transaction
+from rest_framework import serializers
+from rest_framework.validators import ValidationError
 
+from django_iban.generator import IBANGenerator
 from sequences import get_next_value
 
 from .models import *
-from .validators import *
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -42,16 +42,46 @@ class UserDetailSerializer(serializers.ModelSerializer):
         }
 
 
+class UserShortSerializer(serializers.ModelSerializer):
+    """
+    User Serializer for short presentation purposes
+    """
+    class Meta:
+        model = User
+        fields = ('id', 'username')
+        read_only_fields = ('id',)
+
+
 class AccountProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = AccountProduct
         fields = '__all__'
 
 
+class AccountProductShortSerializer(serializers.ModelSerializer):
+    """
+    Account Product Serializer for short presentation purposes
+    """
+    class Meta:
+        model = AccountProduct
+        fields = ('id', 'type', 'name')
+        read_only_fields = ('id',)
+
+
 class CurrencySerializer(serializers.ModelSerializer):
     class Meta:
         model = Currency
         fields = '__all__'
+
+
+class CurrencyShortSerializer(serializers.ModelSerializer):
+    """
+    Currency Serializer for short presentation purposes
+    """
+    class Meta:
+        model = Currency
+        fields = ('id', 'code')
+        read_only_fields = ('id',)
 
 
 class CustomerSerializer(serializers.ModelSerializer):
@@ -150,7 +180,7 @@ class ExtendedTools:
         return extended_user
 
     @staticmethod
-    def get_object_or_404(model_object, pk):
+    def get_object_or_err(model_object, pk):
         """
         Helper function to retrieve instance of any class by pk provided
         :param model_object:
@@ -163,6 +193,21 @@ class ExtendedTools:
             raise ValidationError(f'{model_object.__name__} does not exists!')
 
 
+class CustomerTypeValidator(object):
+    """
+    Enforces consistent type for extended user and customer relation
+    """
+    def __init__(self, required_type):
+        self._required_type = required_type
+
+    def __call__(self, value):
+        customer = Customer.objects.get(cbs_customer_number=value['customer']['cbs_customer_number'])
+        if not customer:
+            raise ValidationError("Incorrect CBS customer number.")
+        if customer.type != self._required_type:
+            raise ValidationError("Incorrect customer type.")
+
+
 class PersonSerializer(ExtendedTools, serializers.ModelSerializer):
     """
     Personal extended user serializer for creation
@@ -171,7 +216,7 @@ class PersonSerializer(ExtendedTools, serializers.ModelSerializer):
 
     class Meta:
         model = Person
-        fields = ('id', 'user', 'personal_identity_number', 'date_of_birth', 'address', 'mobile_phone')
+        fields = ('id', 'user', 'personal_identity_number', 'date_of_birth', 'address', 'mobile_phone', 'pin')
         read_only_fields = ('id',)
 
     def create(self, validated_data):
@@ -239,7 +284,7 @@ class ManagerSerializer(ExtendedTools, serializers.ModelSerializer):
 
     class Meta:
         model = Manager
-        fields = ('id', 'user', 'personal_identity_number', 'mobile_phone', 'limit_per_transfer')
+        fields = ('id', 'user', 'personal_identity_number', 'mobile_phone', 'limit_per_transfer', 'pin')
         read_only_fields = ('id',)
 
     def create(self, validated_data):
@@ -301,10 +346,10 @@ class AccountSerializer(ExtendedTools, serializers.ModelSerializer):
 
 
 class AccountStatusSerializer(serializers.ModelSerializer):
-    users = UserDetailSerializer(many=True, read_only=True)
+    users = UserShortSerializer(many=True, read_only=True)
     customer = CustomerDetailSerializer(read_only=True)
     product = AccountProductSerializer(read_only=True)
-    currency = CurrencySerializer(read_only=True)
+    currency = CurrencyShortSerializer(read_only=True)
 
     class Meta:
         model = Account
@@ -313,12 +358,21 @@ class AccountStatusSerializer(serializers.ModelSerializer):
 
 
 class AccountReadOnlySerializer(serializers.ModelSerializer):
-    users = UserDetailSerializer(many=True, read_only=True)
+    users = UserShortSerializer(many=True, read_only=True)
     customer = CustomerDetailSerializer(read_only=True)
-    product = AccountProductSerializer(read_only=True)
-    currency = CurrencySerializer(read_only=True)
+    product = AccountProductShortSerializer(read_only=True)
+    currency = CurrencyShortSerializer(read_only=True)
 
     class Meta:
         model = Account
         fields = '__all__'
         read_only_fields = ('__all__',)
+
+
+class AccountShortSerializer(serializers.ModelSerializer):
+    currency = CurrencyShortSerializer(read_only=True)
+
+    class Meta:
+        model = Account
+        fields = ('id', 'iban', 'currency')
+        read_only_fields = ('id', 'currency')

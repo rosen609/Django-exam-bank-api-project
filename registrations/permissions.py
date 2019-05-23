@@ -1,7 +1,7 @@
 from rest_framework.permissions import BasePermission, SAFE_METHODS
 
 from .models import Manager, Accountant, Person, Account
-from fund_transfers.models import FundTransfers
+from fund_transfers.models import FundTransfer
 
 
 class IsSuperUser(BasePermission):
@@ -58,7 +58,7 @@ class AccountDeletePermission(BasePermission):
     Only accounts without transfers could be deleted
     """
     def has_object_permission(self, request, view, obj):
-        account_transfers_exist = FundTransfers.objects.filter(account__pk=obj.id).exists()
+        account_transfers_exist = FundTransfer.objects.filter(account__pk=obj.id).exists()
         return (request.method == 'DELETE' or request.method in SAFE_METHODS) and not account_transfers_exist
 
 
