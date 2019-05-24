@@ -4,6 +4,7 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.validators import ValidationError
 
 from drf_multiple_model.views import ObjectMultipleModelAPIView
 
@@ -132,6 +133,10 @@ class AccountantList(MethodSerializerView, generics.ListCreateAPIView):
     }
 
     def get_queryset(self):
+        """
+        Different queryset base on user role
+        :return: filtered queryset
+        """
         if self.request.user and self.request.user.is_staff:
             # Admin users should be able to view list of all Accountants
             return Accountant.objects.all()
@@ -141,7 +146,7 @@ class AccountantList(MethodSerializerView, generics.ListCreateAPIView):
                 manager = Manager.objects.get(user__pk=self.request.user.pk)
                 if manager.customer:
                     return Accountant.objects.filter(customer__pk=manager.customer.pk)
-            except Accountant.DoesNotExist:
+            except Manager.DoesNotExist:
                 pass
         return Accountant.objects.none()
 
@@ -160,6 +165,10 @@ class ManagerList(MethodSerializerView, generics.ListCreateAPIView):
     }
 
     def get_queryset(self):
+        """
+        Different queryset base on user role
+        :return: filtered queryset
+        """
         if self.request.user and self.request.user.is_staff:
             # Admin users should be able to view list of all Managers
             return Manager.objects.all()

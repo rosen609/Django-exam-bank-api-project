@@ -65,6 +65,9 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'bank_api.urls'
 
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_FILE_PATH = os.path.join(BASE_DIR, "sent_emails")
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -113,6 +116,11 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# Twilio settings
+
+TWILIO_ACCOUNT_SID = 'AC542292399b7154c28241a0ca3cc97d36'
+TWILIO_AUTH_TOKEN = '3530744229bb0959296f7df3'
+TWILIO_NUMBER = '+17094002369'
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.2/topics/i18n/

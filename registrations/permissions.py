@@ -68,5 +68,5 @@ class IsManagerAndAccountOwner(BasePermission):
     """
     def has_object_permission(self, request, view, obj):
         is_manager = Manager.objects.filter(user__pk=request.user.id).exists()
-        is_account_owner = request.user in Account.objects.filter(pk=obj.id).users
+        is_account_owner = Account.objects.filter(pk=obj.id).filter(users__pk=request.user.id).exists()
         return is_manager and is_account_owner

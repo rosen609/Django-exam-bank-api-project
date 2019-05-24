@@ -9,15 +9,15 @@ from .enums import TransferStatusEnum, PaymentSystemEnum
 
 
 class FundTransfer(models.Model):
-    user = models.ForeignKey(User, on_delete=models.PROTECT)
-    account = models.ForeignKey(Account, on_delete=models.PROTECT)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    account = models.ForeignKey(Account, on_delete=models.CASCADE)
     iban_beneficiary = IBANField()
     bic_beneficiary = models.CharField(max_length=11, blank=True)
     bank_beneficiary = models.CharField(max_length=200, blank=True)
     name_beneficiary = models.CharField(max_length=150, blank=True)
     amount = models.FloatField(default=0, validators=[MinValueValidator(0)])
     amount_bgn = models.FloatField(default=0, validators=[MinValueValidator(0)])
-    currency = models.ForeignKey(Currency, on_delete=models.PROTECT, default=1)
+    currency = models.ForeignKey(Currency, on_delete=models.CASCADE, default=1)
     details = models.CharField(max_length=150)
     created = models.DateTimeField(auto_now_add=True)
     last_updated = models.DateTimeField(auto_now=True)
