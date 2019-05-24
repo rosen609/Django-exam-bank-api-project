@@ -1,3 +1,4 @@
+from random import randint
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.db import transaction
 from rest_framework import serializers
@@ -230,6 +231,8 @@ class AccountSerializer(ExtendedTools, serializers.ModelSerializer):
                                       account=f"{validated_data['product'].code[:2]}{validated_data['currency'].code}{iban_sequence:05d}")
 
         validated_data['iban'] = iban['generated_iban']
+
+        validated_data['balance'] = randint(1, 77) * 1000
 
         instance = Account.objects.create(**validated_data)
 

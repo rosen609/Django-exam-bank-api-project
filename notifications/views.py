@@ -1,4 +1,5 @@
 from random import randint
+from django.shortcuts import get_object_or_404
 from rest_framework import views
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -30,7 +31,7 @@ class NotificationOTP(ExtendedTools, views.APIView):
     def get(self, request, transfer_pk):
 
         extended_user = self.get_extended_user(request.user)
-        fund_transfer = self.get_object_or_err(model_object=FundTransfer, pk=transfer_pk)
+        fund_transfer = get_object_or_404(klass=FundTransfer, pk=transfer_pk, status='I')
 
         if Account.objects.filter(pk=fund_transfer.account.pk).filter(users__pk=request.user.pk).exists()\
                 and not isinstance(extended_user, Accountant):
@@ -44,7 +45,8 @@ class NotificationOTP(ExtendedTools, views.APIView):
 
             # Send by SMS
             notification = Notification(type='S', to=extended_user.mobile_phone,
-                                        contents=f' OTP: {otp} for Fund Transfer {transfer_pk}')
+                                        contents=f' OTP: {otp} for Fund Transfer {transfer_pk} '
+                                        f'({fund_transfer.amount:.2f} {fund_transfer.currency.code})')
             send_sms(to_phone_number=notification.to, message_body=notification.contents)
             notification.status = 'S'
             notification.save()
