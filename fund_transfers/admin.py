@@ -1,5 +1,5 @@
 from django.contrib import admin
 
-from .models import FundTransfers
+from .models import FundTransfer
 
-admin.site.register(FundTransfers)
+admin.site.register(FundTransfer)

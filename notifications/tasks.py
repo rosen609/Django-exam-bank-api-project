@@ -1,15 +1,15 @@
-from os import environ
+from django.conf import settings
 
 from twilio.rest import Client
 
 
 def send_sms(to_phone_number, message_body):
     # Account SID from twilio.com/console
-    account_sid = environ["TWILIO_ACCOUNT_SID"]
+    account_sid = settings.TWILIO_ACCOUNT_SID
     # Auth Token from twilio.com/console
-    auth_token = environ["TWILIO_AUTH_TOKEN"]
+    auth_token = settings.TWILIO_AUTH_TOKEN
     # Active Number from twilio.com/console/phone-numbers
-    from_number = environ["TWILIO_NUMBER"]
+    from_number = settings.TWILIO_NUMBER
 
     client = Client(account_sid, auth_token)
 
