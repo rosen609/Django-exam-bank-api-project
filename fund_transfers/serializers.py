@@ -122,9 +122,9 @@ class FundTransferDetailSerializer(ExtendedTools, serializers.ModelSerializer):
             validated_data['status'] = 'P'
             validated_data['reference_cbs'] = f'FT{datetime.date.today().strftime("%Y%m%d")}{instance.id:06d}'
 
-            # send_sms(to_phone_number=extended_user.mobile_phone,
-            #          message_body=f'Ordered transfer {instance.id} '
-            #          f'({validated_data["amount"]:.2f} {validated_data["currency"].code})')
+            send_sms(to_phone_number=extended_user.mobile_phone,
+                     message_body=f'Ordered transfer {instance.id} '
+                     f'({validated_data["amount"]:.2f} {validated_data["currency"].code})')
 
         # Same as in rest_framework.serializers
         info = model_meta.get_field_info(instance)

@@ -116,7 +116,11 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# Twilio settings
 
+TWILIO_ACCOUNT_SID = ''
+TWILIO_AUTH_TOKEN = ''
+TWILIO_NUMBER = ''
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.2/topics/i18n/
