@@ -23,7 +23,7 @@ class FundTransferSerializer(serializers.ModelSerializer):
 
         fields = ('id', 'user', 'iban_beneficiary', 'bic_beneficiary', 'bank_beneficiary',
                   'name_beneficiary', 'details', 'amount', 'currency', 'amount_bgn', 'created', 'last_updated',
-                  'status', 'user_approved', 'reference_cbs', 'account', 'payment_system')
+                  'user_approved', 'reference_cbs', 'account', 'payment_system', 'status')
 
         read_only_fields = ('id', 'user', 'amount_bgn', 'created', 'last_updated', 'status', 'user_approved',
                             'reference_cbs')
