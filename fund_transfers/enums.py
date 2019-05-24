@@ -10,6 +10,7 @@ class TransferStatusEnum(Enum):
 
 
 class PaymentSystemEnum(Enum):
+    I = "Internal"
     B = "BISERA"
     T = "TARGET2"
     S = "SWIFT"

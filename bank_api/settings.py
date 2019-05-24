@@ -119,7 +119,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Twilio settings
 
 TWILIO_ACCOUNT_SID = 'AC542292399b7154c28241a0ca3cc97d36'
-TWILIO_AUTH_TOKEN = '3530744229bb0959296f7df3'
+TWILIO_AUTH_TOKEN = '3530744229bb0959296f7df3a40f3ff4'
 TWILIO_NUMBER = '+17094002369'
 
 # Internationalization
@@ -133,7 +133,7 @@ USE_I18N = True
 
 USE_L10N = True
 
-USE_TZ = True
+USE_TZ = False
 
 
 # Static files (CSS, JavaScript, Images)

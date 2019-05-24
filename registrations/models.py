@@ -27,7 +27,7 @@ class Currency(models.Model):
     """
     code = models.CharField(max_length=3, unique=True)
     name = models.CharField(max_length=50)
-    rate_to_BGN = models.FloatField(validators=[MinValueValidator(0)])
+    rate_to_bgn = models.FloatField(validators=[MinValueValidator(0)])
 
     def __str__(self):
         return f"{self.code} {self.name}"
