@@ -69,7 +69,7 @@ class AccountProductList(generics.ListCreateAPIView):
     queryset = AccountProduct.objects.all()
     serializer_class = AccountProductSerializer
 
-    permission_classes = [IsSuperUser|IsReadOnly]
+    permission_classes = [IsSuperUser | IsReadOnly]
 
 
 class AccountProductDetail(generics.RetrieveUpdateDestroyAPIView):
