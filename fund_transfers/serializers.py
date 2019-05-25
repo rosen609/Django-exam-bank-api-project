@@ -137,3 +137,13 @@ class FundTransferDetailSerializer(ExtendedTools, serializers.ModelSerializer):
         instance.save()
 
         return instance
+
+
+class StatementSerializer(serializers.ModelSerializer):
+    amount_debit = serializers.FloatField()
+    amount_credit = serializers.FloatField()
+
+    class Meta:
+        model = FundTransfer
+
+        fields = ('id', 'last_updated', 'amount_debit', 'amount_credit', 'reference_cbs', 'name_beneficiary', 'details')

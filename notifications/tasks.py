@@ -5,6 +5,12 @@ from twilio.rest import Client
 
 
 def send_sms(to_phone_number, message_body):
+    '''
+    Send sms
+    :param to_phone_number:
+    :param message_body:
+    :return:
+    '''
     # # Account SID from twilio.com/console
     # account_sid = settings.TWILIO_ACCOUNT_SID
     # # Auth Token from twilio.com/console

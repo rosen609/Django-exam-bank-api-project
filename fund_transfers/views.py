@@ -1,14 +1,14 @@
+from django.shortcuts import get_object_or_404
+from django.db.models import F, Value, FloatField
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 
-from drf_multiple_model.views import ObjectMultipleModelAPIView
-
 from .models import FundTransfer
-from .serializers import FundTransferSerializer, FundTransferDetailSerializer
+from .serializers import FundTransferSerializer, FundTransferDetailSerializer, StatementSerializer
 from .permissions import IsFundTransferAccountOwner, IsProperStatus
 
 from registrations.utils import ExtendedTools
-from registrations.models import Accountant, Manager, Person
+from registrations.models import Accountant, Manager, Person, Account
 from registrations.permissions import IsManager, IsPerson
 
 
@@ -35,7 +35,7 @@ class FundTransfersList(ExtendedTools, generics.ListCreateAPIView):
         # Some additional filters from request parameters
         for key, value in self.request.query_params.items():
             # Filter by account, from date, to date,
-            if key == 'account' or key == 'account_id':
+            if key == 'account_id':
                 try:
                     query_set = query_set.filter(account__pk=int(value))
                 except:
@@ -76,19 +76,45 @@ class FundTransfersDetail(ExtendedTools, generics.RetrieveUpdateDestroyAPIView):
             # We filter transfers for different users according to their permissions to view FTs
             if isinstance(extended_user, Accountant):
                 query_set = query_set.filter(user__pk=user.pk)
-            elif isinstance(extended_user, Manager) or isinstance(extended_user, Person):
-                query_set = query_set.filter(account__customer=extended_user.customer)
 
         return query_set
 
 
-class Statement(ObjectMultipleModelAPIView):
+class StatementList(generics.ListAPIView):
+    permission_classes = [IsAuthenticated, ]
+
+    serializer_class = StatementSerializer
 
     def get_queryset(self):
 
-        # self.querylist = [
-        #     {'queryset': AccountProduct.objects.all(), 'serializer_class': AccountProductSerializer},
-        #     {'queryset': Currency.objects.all(), 'serializer_class': CurrencySerializer},
-        # ]
+        account_id = self.request.query_params.get('account_id', None)
+        from_date = self.request.query_params.get('from_date', None)
+        to_date = self.request.query_params.get('to_date', None)
 
-        return None
+        if account_id is None or from_date is None or to_date is None:
+            return []
+
+        account = get_object_or_404(Account, pk=account_id, users__pk=self.request.user.id)
+
+        # Credit transfers query for account
+        query_credits = FundTransfer.objects.filter(iban_beneficiary=account.iban,
+                                                    last_updated__gte=from_date,
+                                                    last_updated__lte=to_date,
+                                                    status='P'
+                                                    ).values(
+            'id', 'last_updated', 'reference_cbs', 'name_beneficiary', 'details',
+            amount_debit=Value(0, FloatField()), amount_credit=F('amount_bgn') / account.currency.rate_to_bgn
+        )
+        # Debit transfers query for account
+        query_debits = FundTransfer.objects.filter(account__pk=account.id,
+                                                   last_updated__gte=from_date,
+                                                   last_updated__lte=to_date,
+                                                   status='P'
+                                                   ).values(
+            'id', 'last_updated', 'reference_cbs', 'name_beneficiary', 'details',
+            amount_debit=F('amount_bgn') / account.currency.rate_to_bgn, amount_credit=Value(0, FloatField())
+        )
+
+        query_all = query_credits.union(query_debits).order_by('last_updated')
+
+        return query_all
