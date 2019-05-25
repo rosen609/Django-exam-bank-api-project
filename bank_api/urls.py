@@ -15,9 +15,13 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, re_path, include
+from rest_framework_swagger.views import get_swagger_view
+
+swagger_schema_view = get_swagger_view(title='Django Bank API')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/v1/', swagger_schema_view),
     path('api/v1/registrations/', include('registrations.urls')),
     path('api/v1/fund_transfers/', include('fund_transfers.urls')),
     path('api/v1/notifications/', include('notifications.urls')),

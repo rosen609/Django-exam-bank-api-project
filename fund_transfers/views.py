@@ -94,6 +94,8 @@ class StatementList(generics.ListAPIView):
         if account_id is None or from_date is None or to_date is None:
             return []
 
+        to_date = to_date + ' 23:59:59'
+
         account = get_object_or_404(Account, pk=account_id, users__pk=self.request.user.id)
 
         # Credit transfers query for account
