@@ -57,7 +57,7 @@ My exam Django REST project. API for basic online bank operations
 ###### o	Amount Limits per transfer for managers
 ###### o	Account balance will be validated when transfer is approved and the amount of transfer will be subtracted, and added, only if credit account is internal for Django bank
 ###### o	Manager Limit should also be validated, because it must not be exceeded
-###### o	When account is created balance will be random 0 -76000 
+###### o	When account is created balance will be random 0 - 76000 
 ###### o	Reports :
 ###### 	Transfers by account, by period, by user
 ###### 	Account statement – debit and credit operations by account and period

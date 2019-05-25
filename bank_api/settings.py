@@ -142,3 +142,13 @@ USE_TZ = False
 
 STATIC_URL = '/static/'
 
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'basic': {
+            'type': 'basic'
+        }
+    },
+}
+
+LOGIN_URL = 'registrations/auth/login/'
+LOGOUT_URL = 'registrations/auth/logout/'

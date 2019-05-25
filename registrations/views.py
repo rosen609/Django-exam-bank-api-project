@@ -230,7 +230,7 @@ class AccountUser(ExtendedTools, APIView):
     """
     Add / remove users to / from account
     """
-    permission_classes = [IsAdminUser | IsManagerAndAccountOwner]
+    permission_classes = [IsAuthenticated, IsAdminUser | IsManagerAndAccountOwner]
     allowed_methods = ('GET', 'DELETE')
 
     def get(self, request, pk, user_pk):
