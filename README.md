@@ -6,23 +6,23 @@ My exam Django REST project. API for basic online bank operations
 #### Registrations (api/v1/registrations/)
 
 ###### auth/login/ (non-authenticated)
-###### persons/ (post - non-authenticated / admin)
+###### persons/ (post - non-authenticated)
 ###### persons/{pk}/ (admin)
-###### accountants/ (post - non-authenticated / admin)
+###### accountants/ (post - non-authenticated)
 ###### accountants/{pk}/ (admin)
-###### managers/ (post - non-authenticated / admin)
+###### managers/ (post - non-authenticated)
 ###### managers/{pk}/ (admin)
 ###### all_users/ (admin)
 ###### info/ (non-authenticated)
-###### account_products/ 
-###### account_products/{pk}/
-###### currencies/
-###### currencies/{pk}/
-###### customers/
-###### customers/{pk}/
+###### account_products/ (get - non-authenticated / admin)
+###### account_products/{pk}/ (admin)
+###### currencies/ (get - non-authenticated / admin)
+###### currencies/{pk}/ (admin)
+###### customers/ (admin)
+###### customers/{pk}/ (admin)
 ###### accounts/
 ###### accounts/{pk}/
-###### accounts/{pk}/user/{pk}/
+###### accounts/{pk}/user/{pk}/ 
 
 #### Fund Transfers (api/v1/fund_transfers/)
 
