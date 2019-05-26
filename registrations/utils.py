@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from rest_framework.validators import ValidationError
+
 from .models import *
 
 
@@ -82,7 +83,7 @@ class ExtendedTools:
             try:
                 extended_user = Manager.objects.get(user__pk=user.id)
             except Manager.DoesNotExist:
-                raise ValidationError('Wrong user type!')
+                raise ValidationError('Not proper user type!')
         return extended_user
 
     @staticmethod
@@ -113,5 +114,3 @@ class CustomerTypeValidator(object):
             raise ValidationError("Incorrect CBS customer number.")
         if customer.type != self._required_type:
             raise ValidationError("Incorrect customer type.")
-
-

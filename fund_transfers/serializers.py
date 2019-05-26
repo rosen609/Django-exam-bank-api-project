@@ -73,7 +73,7 @@ class FundTransferDetailSerializer(ExtendedTools, serializers.ModelSerializer):
 
         amount = round(amount_bgn / account.currency.rate_to_bgn, 2)
         if account.balance + amount >= 0:
-            account.balance = account.balance + amount
+            account.balance = round(account.balance + amount, 2)
             account.save()
         else:
             raise ValidationError('Not sufficient account balance! Transfer rejected!')
@@ -107,13 +107,14 @@ class FundTransferDetailSerializer(ExtendedTools, serializers.ModelSerializer):
         if validated_data['status'] == 'A' or (validated_data['status'] == 'I' and validated_data['pin_otp']):
             extended_user = self.get_extended_user(user)
 
-            if validated_data['pin_otp']:
+            if validated_data['pin_otp'] or validated_data['status'] == 'A':
                 # Validate correct PIN + OTP
                 if validated_data['pin_otp'] != extended_user.pin + instance.otp_generated:
                     raise ValidationError("Invalid PIN + OTP!")
 
             if isinstance(extended_user, Manager):
-                if validated_data['amount_bgn'] > extended_user.limit_per_transfer:
+                # If there is a limit for manager, we validate it
+                if extended_user.limit_per_transfer and validated_data['amount_bgn'] > extended_user.limit_per_transfer:
                     raise ValidationError("Manager's limit per transfer exceeded!")
 
             self.update_account_balance(account, -validated_data['amount_bgn'])
