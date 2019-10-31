@@ -6,7 +6,7 @@ colorama==0.4.1
 coreapi==2.3.3
 coreschema==0.0.4
 decorator==4.4.0
-Django==2.1.8
+Django==2.1.11
 django-iban-field==0.8
 django-phonenumber-field==2.4.0
 django-rest-auth==0.9.5
